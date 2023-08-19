@@ -1,44 +1,41 @@
-import {Composition} from 'remotion';
-import {HelloWorld, myCompSchema} from './HelloWorld';
-import {Logo, myCompSchema2} from './HelloWorld/Logo';
+import {CalculateMetadataFunction, Composition, staticFile} from 'remotion';
+import {Test, testProps} from './test';
+import {z} from 'zod';
 
 // Each <Composition> is an entry in the sidebar!
+const calculateMetadata: CalculateMetadataFunction<
+	z.infer<typeof testProps>
+> = async ({defaultProps, props}) => {
+	const newProps = {...defaultProps, ...props};
+	newProps.videoSrc = staticFile(newProps.videoSrc);
+	return {
+		durationInFrames: newProps.durationInFrames,
+		fps: newProps.fps,
+		width: newProps.width,
+		height: newProps.height,
+		props: newProps,
+	};
+};
 
 export const RemotionRoot: React.FC = () => {
 	return (
 		<>
 			<Composition
-				// You can take the "id" to render a video:
-				// npx remotion render src/index.ts <id> out/video.mp4
-				id="HelloWorld"
-				component={HelloWorld}
-				durationInFrames={150}
-				fps={30}
-				width={1920}
-				height={1080}
-				// You can override these props for each render:
-				// https://www.remotion.dev/docs/parametrized-rendering
-				schema={myCompSchema}
+				id="test"
+				schema={testProps}
+				component={Test}
 				defaultProps={{
-					titleText: 'Welcome to Remotion',
-					titleColor: '#000000',
-					logoColor1: '#91EAE4',
-					logoColor2: '#86A8E7',
+					videoSrc: 'vid.mp4',
+					durationInFrames: 4252,
+					fps: 30,
+					width: 854,
+					height: 480,
 				}}
-			/>
-			{/* Mount any React component to make it show up in the sidebar and work on it individually! */}
-			<Composition
-				id="OnlyLogo"
-				component={Logo}
-				durationInFrames={150}
+				durationInFrames={30 * 60}
 				fps={30}
-				width={1920}
-				height={1080}
-				schema={myCompSchema2}
-				defaultProps={{
-					logoColor1: '#91dAE2' as const,
-					logoColor2: '#86A8E7' as const,
-				}}
+				width={854}
+				height={480}
+				calculateMetadata={calculateMetadata}
 			/>
 		</>
 	);
